@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: inventory-backend
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/inventory_system?useUnicode=true&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 16
+        # 修改：去掉硬编码的57Dialect，让Hibernate自动选择
+        dialect: org.hibernate.dialect.MySQLDialect
+
+logging:
+  level:
+    # Spring JDBC - 显示SQL和参数（调试时需要）
+    org.springframework.jdbc: INFO           # 从DEBUG降为INFO，减少连接池等杂讯
+    org.springframework.jdbc.core.JdbcTemplate: DEBUG  # 只开启模板的DEBUG
+
+    # Hibernate - 关键SQL信息
+    org.hibernate.SQL: DEBUG                 # 保持，显示执行的SQL
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE # 改为INFO或WARN，参数绑定太详细
+    org.hibernate.type: INFO                 # 类型处理设为INFO
+    org.hibernate.orm.jdbc.bind: INFO        # 绑定器设为INFO
+
+    # 你自己的包 - 根据需求调整
+    com.example.inventory: DEBUG             # 保持DEBUG，方便调试业务逻辑
+
+    # 其他常用框架组件
+    org.springframework.transaction: INFO    # 事务管理设为INFO
+    org.springframework.web: INFO            # Web层设为INFO
+    org.springframework.security: INFO       # 安全相关设为INFO（如有）
+
+server:
+  port: 8080

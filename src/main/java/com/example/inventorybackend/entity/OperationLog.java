@@ -3,16 +3,32 @@ package com.example.inventorybackend.entity;// OperationLog.java
 import lombok.Data;
 
 import java.time.LocalDateTime;
+
+// OperationLog.java
+
+import jakarta.persistence.*;
+
+        import java.time.LocalDateTime;
 @Data
+@Entity
+@Table(name = "operation_logs")
 public class OperationLog {
+
+    @Id
     private String id;
+
+    @Column(name = "product_id")
     private String productId;
+
+    @Column(name = "product_name")
     private String productName;
-    private String action;     // "上架" / "入库" / "出库" / "下架"
-    private int quantity;      // 数量（出库为负？这里用正数+类型区分）
+
+    private String action; // "入库"/"出库"/"上架"
+    private int quantity;
     private LocalDateTime timestamp;
 
-    // 构造函数
+
+    // 构造函数 + Getter/Setter
     public OperationLog() {}
 
     public OperationLog(String id, String productId, String productName,
@@ -25,5 +41,6 @@ public class OperationLog {
         this.timestamp = timestamp;
     }
 
-
+    // getter/setter...
 }
+

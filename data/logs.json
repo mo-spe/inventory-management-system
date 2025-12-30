@@ -38,5 +38,181 @@
     "action": "出库",
     "quantity": 25,
     "timestamp": "2025-12-30T09:52:41"
+  },
+  {
+    "id": "06452c43-330f-4f41-96d0-4b47e61bd93a",
+    "productId": "SP0001",
+    "productName": "矿泉水",
+    "action": "下架",
+    "quantity": 100,
+    "timestamp": "2025-12-30T14:19:30"
+  },
+  {
+    "id": "d884e9d8-5438-4ded-8aac-63f9653abc7e",
+    "productId": "SP0001",
+    "productName": "矿泉水",
+    "action": "下架",
+    "quantity": 100,
+    "timestamp": "2025-12-30T14:19:48"
+  },
+  {
+    "id": "11c23aa2-c503-4db6-a111-b640c4c7b7d9",
+    "productId": "SP0001",
+    "productName": "矿泉水",
+    "action": "下架",
+    "quantity": 100,
+    "timestamp": "2025-12-30T14:19:51"
+  },
+  {
+    "id": "705cef35-a668-4ed3-803c-36ec48d72afe",
+    "productId": "SP0001",
+    "productName": "矿泉水",
+    "action": "入库",
+    "quantity": 92,
+    "timestamp": "2025-12-30T14:21:06"
+  },
+  {
+    "id": "5f8f0120-3aa2-48b7-89fd-83500352cbe1",
+    "productId": "SP0001",
+    "productName": "矿泉水",
+    "action": "出库",
+    "quantity": 190,
+    "timestamp": "2025-12-30T14:21:20"
+  },
+  {
+    "id": "32c6eec3-be4f-4218-b1ea-ea8aa652f2de",
+    "productId": "SP0006",
+    "productName": "洗发水",
+    "action": "下架",
+    "quantity": 35,
+    "timestamp": "2025-12-30T14:21:40"
+  },
+  {
+    "id": "02f3f457-84b2-420b-8a2b-0eb4e4506cb5",
+    "productId": "SP0007",
+    "productName": "苹果",
+    "action": "下架",
+    "quantity": 125,
+    "timestamp": "2025-12-30T14:21:45"
+  },
+  {
+    "id": "04b41641-18ea-4855-b1cf-ca2ca61b1c3c",
+    "productId": "SP0006",
+    "productName": "洗发水",
+    "action": "下架",
+    "quantity": 35,
+    "timestamp": "2025-12-30T14:21:49"
+  },
+  {
+    "id": "1383730c-45c8-4ac0-8b75-bd297ad632fc",
+    "productId": "SP0001",
+    "productName": "矿泉水",
+    "action": "下架",
+    "quantity": 2,
+    "timestamp": "2025-12-30T14:21:51"
+  },
+  {
+    "id": "5b93b406-9242-453d-8c7a-5ed64758bf6a",
+    "productId": "SP0006",
+    "productName": "洗发水",
+    "action": "下架",
+    "quantity": 35,
+    "timestamp": "2025-12-30T14:29:41"
+  },
+  {
+    "id": "f03b15e7-98ac-422b-b468-1f4ed2f95b0a",
+    "productId": "SP0006",
+    "productName": "洗发水",
+    "action": "下架",
+    "quantity": 35,
+    "timestamp": "2025-12-30T14:30:05"
+  },
+  {
+    "id": "253e5630-f148-40df-997e-c884ae5ab26e",
+    "productId": "SP0011",
+    "productName": "牙膏",
+    "action": "下架",
+    "quantity": 50,
+    "timestamp": "2025-12-30T14:56:21"
+  },
+  {
+    "id": "42a8b600-d30a-4e7a-b558-6edffc9229f2",
+    "productId": "SP0010",
+    "productName": "酸奶",
+    "action": "下架",
+    "quantity": 80,
+    "timestamp": "2025-12-30T14:56:31"
+  },
+  {
+    "id": "9205d883-ca35-4309-8b15-fff075f887eb",
+    "productId": "SP0001",
+    "productName": "矿泉水",
+    "action": "出库",
+    "quantity": 1,
+    "timestamp": "2025-12-30T15:21:34"
+  },
+  {
+    "id": "98dfbe61-2abd-44f9-ae2c-311ad2ba3eed",
+    "productId": "SP0005",
+    "productName": "茄子",
+    "action": "上架",
+    "quantity": 12,
+    "timestamp": "2025-12-30T15:26:56"
+  },
+  {
+    "id": "54d034f7-e1db-49e5-8d40-cd78aff928ec",
+    "productId": "SP0030",
+    "productName": "口香糖",
+    "action": "下架",
+    "quantity": 200,
+    "timestamp": "2025-12-30T15:55:46"
+  },
+  {
+    "id": "a0c4c21f-55e3-4678-9ae2-0bd497355a0f",
+    "productId": "SP0050",
+    "productName": "矿泉水",
+    "action": "下架",
+    "quantity": 100,
+    "timestamp": "2025-12-30T18:23:59"
+  },
+  {
+    "id": "c2c85c25-3628-43a7-bd1c-5e5cd5966b49",
+    "productId": "SP0038",
+    "productName": "白菜",
+    "action": "出库",
+    "quantity": 240,
+    "timestamp": "2025-12-30T18:24:34"
+  },
+  {
+    "id": "50c018e9-5a41-4516-8156-5b2705a12d6e",
+    "productId": "SP0049",
+    "productName": "猪肉",
+    "action": "出库",
+    "quantity": 35,
+    "timestamp": "2025-12-30T18:25:06"
+  },
+  {
+    "id": "c265f7f5-ee24-4335-92cf-3fb634313b42",
+    "productId": "SP0008",
+    "productName": "牛肉",
+    "action": "入库",
+    "quantity": 6,
+    "timestamp": "2025-12-30T18:26:00"
+  },
+  {
+    "id": "6bf2f8eb-90b2-4d30-b1aa-65d1c088c568",
+    "productId": "SP0001",
+    "productName": "矿泉水",
+    "action": "入库",
+    "quantity": 29,
+    "timestamp": "2025-12-30T18:27:08"
+  },
+  {
+    "id": "cbe3c7bf-76a4-4f04-bf38-9786d905e539",
+    "productId": "SP0001",
+    "productName": "矿泉水",
+    "action": "入库",
+    "quantity": 1,
+    "timestamp": "2025-12-30T18:35:20"
   }
 ]

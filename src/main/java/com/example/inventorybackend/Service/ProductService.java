@@ -1,6 +1,8 @@
 package com.example.inventorybackend.Service;
 // ProductService.java
 
+import com.example.inventorybackend.Repository.OperationLogRepository;
+import com.example.inventorybackend.Repository.ProductRepository;
 import com.example.inventorybackend.entity.OperationLog;
 import com.example.inventorybackend.entity.Product;
 import com.google.gson.Gson;
@@ -12,42 +14,64 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+// ProductService.java
+
+import com.example.inventorybackend.entity.OperationLog;
+import com.example.inventorybackend.entity.Product;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.PostConstruct;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class ProductService implements InitializingBean {
+@Transactional  // 确保增删改查在事务中执行
+public class ProductService {
 
-    private final List<Product> products = new ArrayList<>();
-    private static final String DATA_FILE = "data/inventory.json";
+    @Autowired
+    private ProductRepository productRepo;
 
-    private final List<OperationLog> logs = new ArrayList<>();
-    private static final String LOG_FILE_PATH = "data/logs.json";
+    @Autowired
+    private OperationLogRepository logRepo;
 
-    public ProductService() {
-        System.out.println("🔧【DEBUG】ProductService 已被 Spring 创建！ID: " + this.hashCode());
-    }
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        init();
-    }
-    /**
-     * 系统启动时加载数据
-     */
-    public void init() {
-        System.out.println("🔧 [初始化] ProductService 正在加载数据...");
-        loadData();
+    // ================= [新增] 自动迁移 JSON 数据 ==================
+    @PostConstruct
+    public void migrateDataFromJson() {
+        // 检查数据库是否已有数据
+        if (productRepo.count() > 0) {
+            System.out.println("✅ 数据库已有数据，跳过 JSON 迁移");
+            return;
+        }
 
-        if (products.isEmpty()) {
-            System.out.println("⚠️ 数据为空，正在添加默认测试商品...");
-            products.add(new Product("SP0001", "矿泉水", "饮料", 1.5, 2.0, 100));
-            products.add(new Product("SP0002", "薯片", "零食", 3.0, 5.0, 50));
-            saveData();
-            System.out.println("✅ 已添加2条测试数据并保存");
-        }else {
-            System.out.println("🎉 成功从文件加载了 " + products.size() + " 条数据");
+        File jsonFile = new File("data/inventory.json");
+        if (!jsonFile.exists()) {
+            System.out.println("🔍 无历史数据文件 data/inventory.json，跳过导入");
+            return;
+        }
+
+        try (FileReader reader = new FileReader(jsonFile)) {
+            Type listType = new TypeToken<List<Product>>(){}.getType();
+            Gson gson = new Gson();
+            List<Product> products = gson.fromJson(reader, listType);
+
+            if (products != null && !products.isEmpty()) {
+                System.out.println("📦 正在从 inventory.json 导入 " + products.size() + " 条商品数据...");
+                productRepo.saveAll(products);
+                System.out.println("✅ 成功导入所有商品数据！");
+            } else {
+                System.out.println("🟡 文件为空，未导入任何数据");
+            }
+        } catch (Exception e) {
+            System.err.println("❌ 导入失败：" + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -55,25 +79,25 @@ public class ProductService implements InitializingBean {
      * 获取所有商品
      */
     public List<Product> getAllProducts() {
-        return new ArrayList<>(products);
+        return productRepo.findAll();
     }
 
     /**
      * 根据 ID 查找商品
      */
     public Product findById(String id) {
-        return products.stream().filter(p -> p.getId().equals(id)).findFirst().orElse(null);
+        return productRepo.findById(id).orElse(null);
     }
 
     /**
      * 添加商品（校验重复）
      */
     public boolean addProduct(Product product) {
-        if (findById(product.getId()) != null) {
+        if (productRepo.existsById(product.getId())) {
             return false; // 已存在
         }
-        products.add(product);
-        saveData(); // 添加后立即保存
+        productRepo.save(product);
+        logStockChange(product.getId(), product.getName(), "上架", product.getStock());
         return true;
     }
 
@@ -81,32 +105,40 @@ public class ProductService implements InitializingBean {
      * 删除商品
      */
     public boolean deleteById(String id) {
-        boolean removed = products.removeIf(p -> p.getId().equals(id));
-        if (removed) {
-            saveData();
+        Product p = findById(id);
+        if (p == null) return false;
+
+        // ✅ 只需记录一次“下架”操作即可
+        logStockChange(p.getId(), p.getName(), "下架", p.getStock());
+
+        // ✅ 直接删除商品，数据库会自动处理日志关联
+        try {
+            productRepo.deleteById(id);
+            return true;
+        } catch (Exception e) {
+            System.err.println("删除失败：" + e.getMessage());
+            return false;
         }
-        return removed;
     }
+
+
 
     /**
      * 更新商品信息（用于修改库存等）
      */
     public boolean updateProduct(String id, Product updated) {
-        for (int i = 0; i < products.size(); i++) {
-            if (products.get(i).getId().equals(id)) {
-                products.set(i, updated);
-                saveData();
-                return true;
-            }
+        if (!productRepo.existsById(id)) {
+            return false;
         }
-        return false;
+        productRepo.save(updated); // JPA 会自动更新
+        return true;
     }
 
     /**
      * 统计各分类数量
      */
     public java.util.Map<String, Integer> getCategoryStats() {
-        return products.stream()
+        return productRepo.findAll().stream()
                 .collect(Collectors.groupingBy(
                         Product::getCategory,
                         Collectors.summingInt(p -> 1)
@@ -117,67 +149,10 @@ public class ProductService implements InitializingBean {
      * 获取低库存商品（<10）
      */
     public List<Product> getLowStockProducts() {
-        return products.stream()
+        return productRepo.findAll().stream()
                 .filter(p -> p.getStock() < 10)
                 .collect(Collectors.toList());
     }
-
-    /**
-     * 保存数据到 JSON 文件
-     */
-    private void saveData() {
-        System.out.println("🔧 正在准备保存数据...");
-
-        File dir = new File("data");
-        if (!dir.exists()) {
-            boolean created = dir.mkdirs();
-            if (created) {
-                System.out.println("✅ 成功创建 data 目录！");
-            } else {
-                System.err.println("❌ 创建 data 目录失败！请检查权限或路径。");
-                return;
-            }
-        } else {
-            System.out.println("📁 data 目录已存在。");
-        }
-
-        try (FileWriter writer = new FileWriter(DATA_FILE)) {
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            gson.toJson(products, writer);
-        } catch (IOException e) {
-            System.err.println("保存数据失败：" + e.getMessage());
-        }
-    }
-
-
-
-
-    /**
-     * 从 JSON 文件加载数据
-     */
-    private void loadData() {
-        File file = new File(DATA_FILE);
-        if (!file.exists()) {
-            System.out.println("无历史数据，初始化空列表");
-            return;
-        }
-
-        try (FileReader reader = new FileReader(file)) {
-            Type listType = new TypeToken<ArrayList<Product>>(){}.getType();
-            List<Product> loaded = new Gson().fromJson(reader, listType);
-            if (loaded != null) {
-                products.addAll(loaded);
-                System.out.println("✅ 成功加载 " + loaded.size() + " 条商品数据");
-            }
-        } catch (Exception e) {
-            System.err.println("读取数据失败：" + e.getMessage());
-        }
-    }
-
-    /**
-     * 系统启动时加载已有日志
-     */
-
 
     /**
      * 记录一次库存变更操作
@@ -191,16 +166,32 @@ public class ProductService implements InitializingBean {
                 qty,
                 LocalDateTime.now()
         );
-        logs.add(log);
+        logRepo.save(log);
     }
 
     /**
      * 获取最近 N 条日志（用于前端显示）
      */
-    public List<OperationLog> getRecentLogs(int limit) {
-        int size = logs.size();
-        int fromIndex = Math.max(0, size - limit);
-        return new ArrayList<>(logs.subList(fromIndex, size));
+    /**
+     * 获取最近 N 条日志（用于前端显示）
+     */
+    /**
+     * 获取最近 N 条日志（用于前端显示）
+     */
+    public List<Map<String, Object>> getRecentLogs(int limit) {
+        // 从数据库获取最新的日志
+        List<OperationLog> logs = logRepo.findTop10ByOrderByTimestampDesc();
+
+        return logs.stream().map(log -> {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("id", log.getId());
+            map.put("productId", log.getProductId());
+            map.put("productName", log.getProductName());
+            map.put("action", log.getAction());
+            map.put("quantity", log.getQuantity());
+            map.put("timestamp", log.getTimestamp().toString()); // 转为字符串避免 JSON 问题
+            return map;
+        }).collect(Collectors.toList());
     }
 
 
@@ -209,7 +200,7 @@ public class ProductService implements InitializingBean {
      * 商品编号自动生成
      */
     public String generateNextId() {
-        return products.stream()
+        return productRepo.findAll().stream()
                 .map(Product::getId)
                 .filter(id -> id.startsWith("SP"))
                 .map(id -> {
@@ -223,9 +214,6 @@ public class ProductService implements InitializingBean {
                 .map(next -> "SP" + String.format("%04d", next + 1))
                 .orElse("SP0001");
     }
-
-
-    // 需要添加依赖：Gson
-
 }
+
 

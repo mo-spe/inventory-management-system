@@ -2,9 +2,7 @@ package com.example.inventorybackend.Controller;
 
 // ProductController.java
 
-import com.example.inventorybackend.Service.LogService;
 import com.example.inventorybackend.Service.ProductService;
-import com.example.inventorybackend.entity.OperationLog;
 import com.example.inventorybackend.entity.Product;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -12,113 +10,159 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+// ProductController.java
+import org.springframework.http.ResponseEntity;
+
+import java.util.HashMap;
+
 @RestController
-@CrossOrigin
+@CrossOrigin  // 允许前端跨域访问
 @RequestMapping("/api")
 public class ProductController {
 
     @Autowired
     private ProductService productService;
 
-    @Autowired
-    private LogService logService; // 👈 注入日志服务
+    // ==================== 商品管理接口 ====================
 
-    // GET /api/products - 获取全部商品
+    /**
+     * GET /api/products
+     * 获取所有商品
+     */
     @GetMapping("/products")
-    public List<Product> getAll() {
-        System.out.println("📍 productService 实例地址：" + productService.hashCode());
-        System.out.println("🟢 [API] GET /api/products 被调用");
-
-        List<Product> result = productService.getAllProducts();
-        System.out.println("📊 返回 " + result.size() + " 条数据");
-
-        return result;
+    public List<Product> getAllProducts() {
+        return productService.getAllProducts();
     }
 
+    /**
+     * GET /api/products/{id}
+     * 根据 ID 查找商品
+     */
+    @GetMapping("/products/{id}")
+    public ResponseEntity<?> findById(@PathVariable String id) {
+        Product product = productService.findById(id);
+        if (product != null) {
+            return ResponseEntity.ok(product);
+        } else {
+            return ResponseEntity.status(404).body("❌ 商品不存在");
+        }
+    }
 
-
-    // 添加商品
+    /**
+     * POST /api/products
+     * 添加新商品
+     */
     @PostMapping("/products")
-    public boolean addProduct(@RequestBody Product product) {
+    public ResponseEntity<Map<String, Object>> addProduct(@RequestBody Product product) {
+        Map<String, Object> result = new HashMap<>();
+
         boolean success = productService.addProduct(product);
         if (success) {
-            logService.addLog(product.getId(), product.getName(), "上架", product.getStock());
+            result.put("success", true);
+            result.put("message", "✅ 成功添加商品：" + product.getName());
+        } else {
+            result.put("success", false);
+            result.put("message", "❌ 编号已存在：" + product.getId());
         }
-        return success;
+
+        return ResponseEntity.status(success ? 200 : 400).body(result);
     }
 
-    // 删除商品
-    @DeleteMapping("/products/{id}")
-    public boolean deleteById(@PathVariable String id) {
-        Product p = productService.findById(id);
-        if (p != null) {
-            logService.addLog(p.getId(), p.getName(), "下架", p.getStock());
-        }
-        return productService.deleteById(id);
-    }
-
-    // PUT /api/products/{id} - 更新商品（如库存）
-    /*
-    @PutMapping("/products/{id}")
-    public boolean updateProduct(@PathVariable String id, @RequestBody Product updated) {
-        // 先查出旧商品信息
-        Product oldProduct = productService.findById(id);
-        if (oldProduct == null) return false;
-
-        // 执行更新
-        boolean success = productService.updateProduct(id, updated);
-        if (!success) return false;
-
-
-        return true;
-    }
-
+    /**
+     * PUT /api/products/{id}
+     * 更新商品信息（用于入库/出库）
      */
-    // 更新库存（入库/出库）
     @PutMapping("/products/{id}")
-    public boolean updateProduct(@PathVariable String id, @RequestBody Product updated) {
+    public ResponseEntity<Map<String, Object>> updateProduct(
+            @PathVariable String id,
+            @RequestBody Product updated) {
+
+        Map<String, Object> result = new HashMap<>();
         Product old = productService.findById(id);
-        if (old == null) return false;
+
+        if (old == null) {
+            result.put("success", false);
+            result.put("message", "❌ 商品不存在");
+            return ResponseEntity.status(404).body(result);
+        }
 
         int diff = updated.getStock() - old.getStock();
-        boolean success = productService.updateProduct(id, updated);
 
+        boolean success = productService.updateProduct(id, updated);
         if (success) {
+            // 记录出入库日志
             if (diff > 0) {
-                logService.addLog(updated.getId(), updated.getName(), "入库", diff);
+                productService.logStockChange(updated.getId(), updated.getName(), "入库", diff);
             } else if (diff < 0) {
-                logService.addLog(updated.getId(), updated.getName(), "出库", Math.abs(diff));
+                productService.logStockChange(updated.getId(), updated.getName(), "出库", Math.abs(diff));
             }
+
+            result.put("success", true);
+            result.put("message", "✅ 库存更新成功");
+        } else {
+            result.put("success", false);
+            result.put("message", "❌ 更新失败，请重试");
         }
-        return success;
+
+        return ResponseEntity.status(success ? 200 : 500).body(result);
     }
 
+    /**
+     * DELETE /api/products/{id}
+     * 删除商品
+     */
+    @DeleteMapping("/products/{id}")
+    public ResponseEntity<Map<String, Object>> deleteById(@PathVariable String id) {
+        Map<String, Object> result = new HashMap<>();
 
+        Product p = productService.findById(id);
+        if (p == null) {
+            result.put("success", false);
+            result.put("message", "❌ 商品不存在");
+            return ResponseEntity.status(404).body(result);
+        }
 
-    // GET /api/stats/category - 分类统计
+        boolean success = productService.deleteById(id);
+        if (success) {
+            result.put("success", true);
+            result.put("message", "✅ 成功删除商品：" + p.getName());
+        } else {
+            result.put("success", false);
+            result.put("message", "❌ 删除失败");
+        }
+
+        return ResponseEntity.status(success ? 200 : 500).body(result);
+    }
+
+    // ==================== 辅助功能接口 ====================
+
+    /**
+     * GET /api/generate-id
+     * 自动生成下一个商品编号（如 SP0003）
+     */
+    @GetMapping("/products/generate-id")
+    public String generateNextId() {
+        return productService.generateNextId();
+    }
+
+    /**
+     * GET /api/stats/category
+     * 统计各分类数量（用于图表）
+     */
     @GetMapping("/stats/category")
     public Map<String, Integer> getCategoryStats() {
         return productService.getCategoryStats();
     }
 
-    // GET /api/alerts/low-stock - 低库存预警
+    /**
+     * GET /api/alerts/low-stock
+     * 获取低库存商品列表（<10）
+     */
     @GetMapping("/alerts/low-stock")
-    public List<Product> getLowStockAlerts() {
+    public List<Product> getLowStockProducts() {
         return productService.getLowStockProducts();
     }
-
-    //商品编号自动生成
-    @GetMapping("/products/generate-id")
-    public String generateId() {
-        return productService.generateNextId();
-    }
-
-    @GetMapping("/logs/recent")
-    public List<Map<String, Object>> getRecentLogs(
-            @RequestParam(defaultValue = "10") int limit) {
-        return logService.getRecentLogs(limit);
-    }
-
 }
+
 
 

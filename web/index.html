@@ -192,6 +192,7 @@
       <li data-page="charts">📊 图表分析</li>
       <li data-page="logs">📝 操作日志</li>
       <li data-page="excel">📤 Excel 导入导出</li>
+      <li data-page="recommend">🤖 智能补货建议</li>
     </ul>
   </div>
 
@@ -326,23 +327,65 @@
           <div id="importResult" style="margin-top:8px;"></div>
         </div>
       </div>
-    `
+    `,
+
+    'recommend': () => `
+    <div class="page">
+      <h2 class="page-title">🤖 智能补货建议</h2>
+      <p style="color:#666;line-height:1.8;">
+        基于最近7天销售趋势、库存状态与周转率分析，系统自动生成进货优先级。
+        <br>
+        ⚠️ 紧急商品请尽快补货，避免缺货损失；✅ 健康商品无需操作。
+      </p>
+
+      <!-- 推荐表格 -->
+      <table id="recommendTable" style="width:100%; margin-top:20px;">
+        <thead>
+          <tr>
+            <th>商品名称</th>
+            <th>分类</th>
+            <th>当前库存</th>
+            <th>周销量</th>
+            <th>建议进货</th>
+            <th>状态</th>
+            <th>优先级</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <!-- 加载提示 -->
+      <div id="recommendStatus" style="text-align:center; color:#999; padding:20px;">
+        🔍 正在生成建议...
+      </div>
+    </div>
+  `
   };
 
   function renderPage(pageName) {
     const mainContent = document.getElementById('mainContent');
     mainContent.innerHTML = pages[pageName]();
 
-    if (pageName === 'product-list') {
+      // 页面初始化逻辑
+  switch (pageName) {
+    case 'product-list':
       loadProducts();
-    } else if (pageName === 'stock-control') {
+      break;
+    case 'stock-control':
       refreshProductSelect();
-    } else if (pageName === 'charts') {
+      break;
+    case 'charts':
       drawCategoryChart();
       drawLowStockChart();
-    } else if (pageName === 'logs') {
+      break;
+    case 'logs':
       loadLogs();
-    }
+      break;
+    case 'recommend':  // 👈 新增
+      renderRecommendations();
+      break;
+  }
+
 
     // ✅ 在页面渲染后绑定事件
     afterRenderActions(pageName);
@@ -632,6 +675,50 @@ async function showLowStockWarning() {
     }
 }
   
+async function renderRecommendations() {
+  const tbody = document.querySelector('#recommendTable tbody');
+  const statusDiv = document.getElementById('recommendStatus');
+  tbody.innerHTML = '';
+  statusDiv.textContent = '加载中...';
+
+  try {
+    const res = await fetch('http://localhost:8080/api/recommend/restock');
+    const suggestions = await res.json();
+
+    if (suggestions.length === 0) {
+      statusDiv.textContent = '暂无商品数据可供分析';
+      return;
+    }
+
+    suggestions.forEach(item => {
+      const tr = document.createElement('tr');
+
+      // 根据状态设置背景色（可选）
+      if (item.status.includes('紧急')) {
+        tr.style.backgroundColor = '#fff3cd';
+      } else if (item.status.includes('缺货')) {
+        tr.style.backgroundColor = '#f8d7da';
+      }
+
+      tr.innerHTML = `
+        <td>${item.name}</td>
+        <td>${item.category}</td>
+        <td><strong>${item.currentStock}</strong></td>
+        <td>${item.weeklySold}</td>
+        <td><strong style="color:#d9534f;">${item.suggestedOrder}</strong></td>
+        <td>${item.status}</td>
+        <td>⭐ ${item.score}/100</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    statusDiv.textContent = `✅ 已完成分析，共评估 ${suggestions.length} 种商品`;
+  } catch (err) {
+    console.error("加载推荐失败", err);
+    statusDiv.textContent = '❌ 数据请求失败，请检查后端是否运行';
+  }
+}
+
   // 初始化
   window.onload = async () => {  // ✅ 改成 async 函数
     renderPage('add-product');
