@@ -1,0 +1,42 @@
+[
+  {
+    "id": "8a94738b-61ab-497b-a181-1ff4e7e411ac",
+    "productId": "SP0001",
+    "productName": "矿泉水",
+    "action": "出库",
+    "quantity": 25,
+    "timestamp": "2025-12-30T09:46:41"
+  },
+  {
+    "id": "cd8341dd-3b66-49ec-98a1-fdd16341fb06",
+    "productId": "SP0002",
+    "productName": "薯片",
+    "action": "入库",
+    "quantity": 5,
+    "timestamp": "2025-12-30T09:48:48"
+  },
+  {
+    "id": "8d154a65-8b96-4c24-b4c6-962ad3fc2876",
+    "productId": "SP0002",
+    "productName": "薯片",
+    "action": "下架",
+    "quantity": 25,
+    "timestamp": "2025-12-30T09:49:50"
+  },
+  {
+    "id": "02ce443c-50c0-4a9c-b79e-e7d775362327",
+    "productId": "SP0001",
+    "productName": "矿泉水",
+    "action": "上架",
+    "quantity": 50,
+    "timestamp": "2025-12-30T09:50:51"
+  },
+  {
+    "id": "8ea6cd4d-4097-432e-aa91-5a76a7ecae11",
+    "productId": "SP0001",
+    "productName": "矿泉水",
+    "action": "出库",
+    "quantity": 25,
+    "timestamp": "2025-12-30T09:52:41"
+  }
+]
