@@ -39,4 +39,9 @@ public interface OperationLogRepository extends JpaRepository<OperationLog, Stri
     @Query("SELECT COALESCE(SUM(o.quantity), 0) FROM OperationLog o " +
             "WHERE o.productId = :pid AND o.action = '出库' AND o.timestamp >= :start")
     int getTotalSoldForProduct(@Param("pid") String pid, @Param("start") LocalDateTime start);
+
+    @Query("SELECT o FROM OperationLog o WHERE o.action = '出库' AND o.timestamp >= :start")
+    List<OperationLog> findOutboundSince(@Param("start") LocalDateTime start);
+
+
 }

@@ -1,107 +1,79 @@
+// RecommendationService.java
 package com.example.inventorybackend.Service;
 
-import com.example.inventorybackend.Repository.OperationLogRepository;
-import com.example.inventorybackend.Repository.ProductRepository;
-import com.example.inventorybackend.entity.Product;
-import com.example.inventorybackend.projection.SalesSummaryProjection;
+import com.example.inventorybackend.entity.SKUStats;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-// RecommendationService.java
 @Service
 public class RecommendationService {
 
-    @Autowired
-    private OperationLogRepository logRepo;
+    @Value("${recommendation.weights.sales:0.4}")
+    private double salesWeight;
+
+    @Value("${recommendation.weights.freshness:0.3}")
+    private double freshnessWeight;
+
+    @Value("${recommendation.weights.profit:0.2}")
+    private double profitWeight;
+
+    @Value("${recommendation.weights.time:0.1}")
+    private double timeWeight;
 
     @Autowired
-    private ProductRepository productRepo;
+    private SKUStatsService skuStatsService;
 
-    /**
-     * 获取智能补货建议列表
-     */
-    public List<Map<String, Object>> getRestockSuggestions() {
-        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
-
-        // 1. 获取过去7天销量
-        List<SalesSummaryProjection> salesList = logRepo.getRecentSales(sevenDaysAgo);
-
-        // 2. 转换为 Map 易处理
-        Map<String, Integer> weeklySalesMap = salesList.stream()
-                .collect(Collectors.toMap(
-                        SalesSummaryProjection::getProductId,
-                        SalesSummaryProjection::getQuantity
-                ));
-
-        // 3. 获取当前库存信息
-        List<Product> allProducts = productRepo.findAll();
-        List<Map<String, Object>> suggestions = new ArrayList<>();
-
-        for (Product p : allProducts) {
-            String pid = p.getId();
-            int weeklySold = weeklySalesMap.getOrDefault(pid, 0);
-            double dailyAvg = weeklySold / 7.0;
-            int currentStock = p.getStock();
-
-            // 预测下周需求（简单线性预测）
-            int predictedDemand = Math.max((int)(dailyAvg * 7), 5); // 至少建议5件
-
-            // 库存健康度评估
-            String status;
-            if (currentStock == 0) {
-                status = "🛑 缺货";
-            } else if (currentStock < predictedDemand * 0.8) {
-                status = "⚠️ 紧急";
-            } else if (currentStock < predictedDemand) {
-                status = "🟡 警告";
-            } else {
-                status = "✅ 健康";
-            }
-
-            // 计算补货建议
-            int suggestedOrder = Math.max(predictedDemand - currentStock, 0);
-
-            // 综合评分（用于排序）
-            double score =
-                    0.5 * normalize(dailyAvg, 0, 50) +           // 日均销量
-                            0.4 * (status.startsWith("⚠️") ? 1.0 : 0.0) + // 是否紧急
-                            0.1 * (suggestedOrder > 0 ? 1.0 : 0.0);      // 是否建议进货
-
-            Map<String, Object> item = new LinkedHashMap<>();
-            item.put("id", pid);
-            item.put("name", p.getName());
-            item.put("category", p.getCategory());
-            item.put("currentStock", currentStock);
-            item.put("weeklySold", weeklySold);
-            item.put("predictedDemand", predictedDemand);
-            item.put("suggestedOrder", suggestedOrder);
-            item.put("status", status);
-            item.put("score", Math.round(score * 100));
-
-            suggestions.add(item);
-        }
-
-        // 按得分降序排列
-        // 按得分降序排列
-        return suggestions.stream()
-                .sorted((a, b) -> Double.compare(
-                        ((Number) b.get("score")).doubleValue(),
-                        ((Number) a.get("score")).doubleValue()
-                ))
+    public List<Map<String, Object>> getTopK(int k, String category) {
+        return getAllRanked().stream()
+                .filter(item -> category == null || category.isEmpty() ||
+                        item.get("category").equals(category))
+                .limit(k)
                 .collect(Collectors.toList());
-
     }
 
-    // 归一化函数 [min, max] → [0, 1]
-    private double normalize(double value, double min, double max) {
-        return (value - min) / (max - min);
+    private List<Map<String, Object>> getAllRanked() {
+        return skuStatsService.getAllStats().stream()
+                .map(this::toScoredItem)
+                .sorted((a, b) -> {
+                    Double scoreA = (Double) a.get("score");
+                    Double scoreB = (Double) b.get("score");
+                    return scoreB.compareTo(scoreA); // 降序：高分在前
+                })
+                .collect(Collectors.toList());
+    }
+
+    private Map<String, Object> toScoredItem(SKUStats s) {
+        Map<String, Object> item = new LinkedHashMap<>();
+        item.put("id", s.productId);
+        item.put("name", s.name);
+        item.put("category", s.category);
+        item.put("currentStock", s.stock);
+
+        double wSales = Math.log(1 + s.avgSalesPerDay) / Math.log(1 + 50);
+        double wFresh = calculateFreshnessWeight(s);
+        double wProfit = s.profitMargin / 0.5;
+        double wTime = s.timeWeight;
+
+        double score = salesWeight * wSales +
+                freshnessWeight * wFresh +
+                profitWeight * wProfit +
+                timeWeight * wTime;
+
+        item.put("score", Math.round(score * 100.0) / 100.0);
+        return item;
+    }
+
+    private double calculateFreshnessWeight(SKUStats s) {
+        if (s.lastRestockDate == null || s.shelfLifeDays <= 0) return 0.6;
+        long days = ChronoUnit.DAYS.between(s.lastRestockDate, LocalDateTime.now());
+        return Math.max(0, 1 - ((double)days / s.shelfLifeDays));
     }
 }
-

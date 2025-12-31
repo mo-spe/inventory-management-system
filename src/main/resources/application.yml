@@ -41,3 +41,13 @@ logging:
 
 server:
   port: 8080
+recommendation:
+  weights:
+    sales: 0.4
+    freshness: 0.3
+    profit: 0.2
+    time: 0.1
+  replenishment:
+    period-days: 14         # 补货周期（天）
+    safety-stock-days: 7    # 安全库存天数
+    max-stock: 200          # 单品最大库存

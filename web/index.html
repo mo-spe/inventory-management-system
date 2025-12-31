@@ -177,6 +177,18 @@
       color: #c0392b;
       border-left-color: #e74c3c;
     }
+
+    /* 分页控件样式 */
+    #paginationControls {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    #paginationControls button {
+      padding: 8px 16px;
+      margin: 0 10px;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -186,7 +198,7 @@
   <div class="sidebar">
     <h2>🛒 库存系统</h2>
     <ul id="menu">
-      <li data-page="add-product" class="active">➕ 添加商品</li>
+      <li data-page="add-product">➕ 添加商品</li>
       <li data-page="product-list">📋 商品列表</li>
       <li data-page="stock-control">📦 入库出库</li>
       <li data-page="charts">📊 图表分析</li>
@@ -267,6 +279,13 @@
           </tr></thead>
           <tbody></tbody>
         </table>
+
+        <!-- 分页控件 -->
+        <div id="paginationControls" style="text-align:center; margin:20px 0;">
+          <button id="prevBtn" disabled>◀ 上一页</button>
+          <span id="pageInfo">正在加载...</span>
+          <button id="nextBtn">下一页 ▶</button>
+        </div>
       </div>
     `,
 
@@ -330,64 +349,100 @@
     `,
 
     'recommend': () => `
-    <div class="page">
-      <h2 class="page-title">🤖 智能补货建议</h2>
-      <p style="color:#666;line-height:1.8;">
-        基于最近7天销售趋势、库存状态与周转率分析，系统自动生成进货优先级。
-        <br>
-        ⚠️ 紧急商品请尽快补货，避免缺货损失；✅ 健康商品无需操作。
-      </p>
+      <div class="page">
+        <h2 class="page-title">🤖 智能补货建议</h2>
 
-      <!-- 推荐表格 -->
-      <table id="recommendTable" style="width:100%; margin-top:20px;">
-        <thead>
-          <tr>
-            <th>商品名称</th>
+        <!-- 强制刷新缓存按钮 -->
+        <button onclick="refreshRecommendCache()" style="
+          background:#007bff;
+          color:white;
+          border:none;
+          padding:8px 16px;
+          margin-bottom:15px;
+          border-radius:4px;
+          cursor:pointer;
+        ">🔄 强制刷新缓存</button>
+
+        <!-- 查询设置表单 -->
+        <div style="background:#f8f9fa;padding:15px;border-radius:8px;margin-bottom:20px;">
+          <h3>🔍 筛选条件</h3>
+          <div style="display:flex;gap:15px;flex-wrap:wrap;align-items:center;">
+            <div>
+              <label>显示数量：</label>
+              <select id="topK" style="padding:6px;">
+                <option value="5">Top 5</option>
+                <option value="10" selected>Top 10</option>
+                <option value="20">Top 20</option>
+                <option value="50">Top 50</option>
+              </select>
+            </div>
+            <div>
+              <label>商品分类：</label>
+              <select id="categoryFilter">
+                <option value="">全部分类</option>
+                <option value="饮料">饮料</option>
+                <option value="零食">零食</option>
+                <option value="日用品">日用品</option>
+                <option value="生鲜">生鲜</option>
+                <option value="速食">速食</option>
+              </select>
+            </div>
+            <div>
+              <label>最低得分：</label>
+              <input type="number" id="minScore" value="0" step="0.1" min="0" max="3" style="width:60px;text-align:center;">
+            </div>
+            <button onclick="refreshRecommendList()" class="btn">🔄 刷新推荐</button>
+          </div>
+        </div>
+
+        <!-- 推荐表格 -->
+        <table id="recommendTable" style="width:100%; margin-top:20px;">
+          <thead><tr>
+            <th>商品</th>
             <th>分类</th>
             <th>当前库存</th>
             <th>周销量</th>
             <th>建议进货</th>
-            <th>状态</th>
-            <th>优先级</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+            <th>综合得分</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
 
-      <!-- 加载提示 -->
-      <div id="recommendStatus" style="text-align:center; color:#999; padding:20px;">
-        🔍 正在生成建议...
+        <!-- 分页控件 -->
+        <div id="paginationControls" style="text-align:center; margin:20px 0;">
+          <button id="prevBtn" disabled>◀ 上一页</button>
+          <span id="pageInfo">点击【刷新】开始分析</span>
+          <button id="nextBtn">下一页 ▶</button>
+        </div>
+
+        <!-- 加载状态 -->
+        <div id="recommendStatus" style="text-align:center; padding:10px;"></div>
       </div>
-    </div>
-  `
+    `
   };
 
   function renderPage(pageName) {
-    const mainContent = document.getElementById('mainContent');
-    mainContent.innerHTML = pages[pageName]();
+    document.getElementById('mainContent').innerHTML = pages[pageName]();
 
-      // 页面初始化逻辑
-  switch (pageName) {
-    case 'product-list':
-      loadProducts();
-      break;
-    case 'stock-control':
-      refreshProductSelect();
-      break;
-    case 'charts':
-      drawCategoryChart();
-      drawLowStockChart();
-      break;
-    case 'logs':
-      loadLogs();
-      break;
-    case 'recommend':  // 👈 新增
-      renderRecommendations();
-      break;
-  }
+    switch (pageName) {
+      case 'product-list':
+        loadProducts(0); // 默认加载第一页
+        break;
+      case 'stock-control':
+        refreshProductSelect();
+        break;
+      case 'charts':
+        drawCategoryChart();
+        drawLowStockChart();
+        break;
+      case 'logs':
+        loadLogs();
+        break;
+      case 'recommend':
+        initRecommendPage(); // 初始化推荐页逻辑
+        break;
+    }
 
-
-    // ✅ 在页面渲染后绑定事件
     afterRenderActions(pageName);
   }
 
@@ -408,42 +463,57 @@
     statusBar.className = 'status-bar ' + (isError ? 'error' : '');
   }
 
-  function renderProductList(products) {
-    const tableBody = document.querySelector('#productTable tbody');
-    tableBody.innerHTML = '';
-    products.forEach(p => {
-      const tr = document.createElement('tr');
-      if (p.stock < 10) {
-        tr.style.backgroundColor = '#fff3cd';
-        tr.style.color = '#856404';
-        tr.title = '⚠️ 库存紧张，请及时补货！';
-      }
-      tr.innerHTML = `
-        <td>${p.id}</td>
-        <td>${p.name}</td>
-        <td>${p.category}</td>
-        <td>${p.buyPrice.toFixed(2)}</td>
-        <td>${p.sellPrice.toFixed(2)}</td>
-        <td>${p.stock}</td>
-        <td>
-          <button class="btn btn-danger" onclick="deleteProduct('${p.id}')">🗑️ 删除</button>
-        </td>
-      `;
-      tableBody.appendChild(tr);
-    });
+  async function loadProducts(page = 0) {
+    try {
+      const res = await fetch(`http://localhost:8080/api/products?page=${page}&size=10`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      // 渲染表格
+      const tbody = document.querySelector('#productTable tbody');
+      tbody.innerHTML = '';
+      data.content.forEach(p => {
+        const tr = document.createElement('tr');
+        if (p.stock < 10) {
+          tr.style.backgroundColor = '#fff3cd';
+          tr.style.color = '#856404';
+          tr.title = '⚠️ 库存紧张，请及时补货！';
+        }
+        tr.innerHTML = `
+          <td>${p.id}</td>
+          <td>${p.name}</td>
+          <td>${p.category}</td>
+          <td>${p.buyPrice.toFixed(2)}</td>
+          <td>${p.sellPrice.toFixed(2)}</td>
+          <td>${p.stock}</td>
+          <td><button class="btn btn-danger" onclick="deleteProduct('${p.id}')">🗑️ 删除</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // 更新分页控件
+      updateProductPaginationControls(data, page);
+
+      showStatus(`共加载 ${data.totalElements} 条商品记录`);
+    } catch (err) {
+      console.error("加载商品失败", err);
+      showStatus("❌ 连接失败：请确认 Java 后端已启动！", true);
+    }
   }
 
-  async function loadProducts() {
-    try {
-      const res = await fetch(API_URL);
-      if (!res.ok) throw new Error('请求失败');
-      const products = await res.json();
-      allProducts = products;
-      renderProductList(products);
-      showStatus(`共加载 ${products.length} 条商品记录`);
-    } catch (err) {
-      showStatus('❌ 连接失败：请确认 Java 后端已启动！', true);
-    }
+  function updateProductPaginationControls(data, page) {
+    const pageInfo = document.getElementById('pageInfo');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    if (!pageInfo || !prevBtn || !nextBtn) return;
+
+    pageInfo.textContent = `第 ${page + 1} 页 / 共 ${data.totalPages} 页`;
+    prevBtn.disabled = data.first;
+    nextBtn.disabled = data.last;
+
+    prevBtn.onclick = () => !data.first && loadProducts(page - 1);
+    nextBtn.onclick = () => !data.last && loadProducts(page + 1);
   }
 
   function refreshProductSelect() {
@@ -473,14 +543,13 @@
     }
   }
 
-  // ============ 表单提交事件绑定（关键修复）============
+  // ============ 表单提交事件绑定 ============
   function afterRenderActions(pageName) {
     if (pageName === 'add-product') {
       const form = document.getElementById('addForm');
       if (form) {
         form.onsubmit = async function(e) {
           e.preventDefault();
-
           const newProduct = {
             id: document.getElementById('id').value,
             name: document.getElementById('name').value,
@@ -489,14 +558,12 @@
             sellPrice: parseFloat(document.getElementById('sellPrice').value),
             stock: parseInt(document.getElementById('stock').value)
           };
-
           try {
             const res = await fetch(API_URL, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(newProduct)
             });
-
             if (res.ok) {
               document.getElementById('addForm').reset();
               autoFillProductId();
@@ -517,26 +584,20 @@
       if (form) {
         form.onsubmit = async function(e) {
           e.preventDefault();
-
           const id = document.getElementById('productId').value;
           const quantity = parseInt(document.getElementById('quantity').value);
           const action = document.querySelector('input[name="action"]:checked').value;
           const product = allProducts.find(p => p.id === id);
-
           if (!product) return alert("请选择有效商品");
-
           let newStock = action === 'restock' ? product.stock + quantity : product.stock - quantity;
           if (newStock < 0) return alert("出库数量不能超过当前库存！");
-
           const updated = { ...product, stock: newStock };
-
           try {
             const res = await fetch(`${API_URL}/${id}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(updated)
             });
-
             if (res.ok) {
               showStatus(`✅ 成功${action === 'restock' ? '入库' : '出库'} ${quantity} 件`);
               renderPage('product-list');
@@ -564,10 +625,7 @@
         type: 'pie',
         data: {
           labels: Object.keys(data),
-          datasets: [{
-            data: Object.values(data),
-            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
-          }]
+          datasets: [{ data: Object.values(data), backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'] }]
         },
         options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
       });
@@ -605,33 +663,25 @@
 
   // 加载日志
   async function loadLogs() {
-  try {
-    const res = await fetch('http://localhost:8080/api/logs/recent?limit=10');
-    const logs = await res.json();
-
-    const ul = document.getElementById('logList');
-    ul.innerHTML = '';
-
-    if (logs.length === 0) {
-      ul.innerHTML = '<li style="color: #7f8c8d;">暂无操作记录</li>';
-      return;
+    try {
+      const res = await fetch('http://localhost:8080/api/logs/recent?limit=10');
+      const logs = await res.json();
+      const ul = document.getElementById('logList');
+      ul.innerHTML = '';
+      if (logs.length === 0) {
+        ul.innerHTML = '<li style="color: #7f8c8d;">暂无操作记录</li>';
+        return;
+      }
+      logs.forEach(log => {
+        const li = document.createElement('li');
+        li.textContent = `[${formatTime(log.timestamp)}] ${log.action} ${log.productName} × ${log.quantity}`;
+        ul.appendChild(li);
+      });
+    } catch (err) {
+      console.error("加载日志失败", err);
+      document.getElementById('logList').textContent = '无法连接日志服务';
     }
-
-    logs.forEach(log => {
-      const li = document.createElement('li');
-      li.textContent = `[${formatTime(log.timestamp)}] ${log.action} ${log.productName} × ${log.quantity}`;
-      ul.appendChild(li);
-    });
-  } catch (err) {
-    console.error("加载日志失败", err);
-    document.getElementById('logList').textContent = '无法连接日志服务';
   }
-}
-
-function formatTime(isoString) {
-  const date = new Date(isoString);
-  return date.toLocaleString('zh-CN', { hour12: false });
-}
 
   function formatTime(isoString) {
     const date = new Date(isoString);
@@ -653,90 +703,145 @@ function formatTime(isoString) {
     }).catch(() => resultDiv.innerHTML = '网络错误');
   }
 
-/**
- * 检查是否有库存紧张的商品，并弹窗提醒
- */
-async function showLowStockWarning() {
-    try {
-        const res = await fetch('http://localhost:8080/api/alerts/low-stock');
-        const lowStockItems = await res.json();
+  // ============ 智能推荐相关函数 ============
+  let recommendCurrentPage = 0;
+  const recommendPageSize = 10;
 
-        if (lowStockItems.length > 0) {
-            const message = `⚠️ 当前有 ${lowStockItems.length} 种商品库存紧张：\n\n` +
-                lowStockItems.map(p => `• ${p.name}（库存：${p.stock}）`).join('\n');
-
-            if (confirm(message)) {
-                // 用户点击“确定”，可以跳转到列表页
-                renderPage('product-list');
-            }
-        }
-    } catch (err) {
-        console.warn("无法加载库存警告信息", err);
-    }
-}
-  
-async function renderRecommendations() {
-  const tbody = document.querySelector('#recommendTable tbody');
-  const statusDiv = document.getElementById('recommendStatus');
-  tbody.innerHTML = '';
-  statusDiv.textContent = '加载中...';
-
-  try {
-    const res = await fetch('http://localhost:8080/api/recommend/restock');
-    const suggestions = await res.json();
-
-    if (suggestions.length === 0) {
-      statusDiv.textContent = '暂无商品数据可供分析';
-      return;
-    }
-
-    suggestions.forEach(item => {
-      const tr = document.createElement('tr');
-
-      // 根据状态设置背景色（可选）
-      if (item.status.includes('紧急')) {
-        tr.style.backgroundColor = '#fff3cd';
-      } else if (item.status.includes('缺货')) {
-        tr.style.backgroundColor = '#f8d7da';
-      }
-
-      tr.innerHTML = `
-        <td>${item.name}</td>
-        <td>${item.category}</td>
-        <td><strong>${item.currentStock}</strong></td>
-        <td>${item.weeklySold}</td>
-        <td><strong style="color:#d9534f;">${item.suggestedOrder}</strong></td>
-        <td>${item.status}</td>
-        <td>⭐ ${item.score}/100</td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    statusDiv.textContent = `✅ 已完成分析，共评估 ${suggestions.length} 种商品`;
-  } catch (err) {
-    console.error("加载推荐失败", err);
-    statusDiv.textContent = '❌ 数据请求失败，请检查后端是否运行';
+  /**
+   * 初始化智能推荐页面
+   */
+  function initRecommendPage() {
+    recommendCurrentPage = 0;
+    refreshRecommendList();
   }
-}
 
-  // 初始化
-  window.onload = async () => {  // ✅ 改成 async 函数
+  /**
+   * 用户点击“刷新推荐”按钮 → 回到第一页
+   */
+  function refreshRecommendList() {
+    recommendCurrentPage = 0;
+    loadRecommendations(recommendCurrentPage);
+  }
+
+  /**
+   * 加载推荐数据
+   */
+  async function loadRecommendations(page) {
+    const tbody = document.querySelector('#recommendTable tbody');
+    const statusDiv = document.getElementById('recommendStatus');
+    const pageInfo = document.getElementById('pageInfo');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    tbody.innerHTML = '';
+    statusDiv.textContent = '🔍 正在加载...';
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+
+    try {
+      const topKValue = document.getElementById('topK')?.value || '10';
+      const category = document.getElementById('categoryFilter')?.value || '';
+      const minScore = parseFloat(document.getElementById('minScore')?.value) || 0;
+
+      let url = `http://localhost:8080/api/recommend/top?page=${page}&size=${recommendPageSize}`;
+      if (category) url += `&category=${encodeURIComponent(category)}`;
+      if (minScore > 0) url += `&minScore=${minScore}`;
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      // 渲染表格
+      tbody.innerHTML = '';
+      data.content.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.name}</td>
+          <td>${item.category}</td>
+          <td><strong>${item.currentStock}</strong></td>
+          <td>${item.weeklySales}</td>
+          <td><strong style="color:#d9534f;">${item.suggestedOrder}</strong></td>
+          <td>⭐ ${item.score.toFixed(2)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // 更新分页信息
+      recommendCurrentPage = data.number;
+      pageInfo.textContent = `第 ${data.number + 1} 页 / 共 ${data.totalPages} 页`;
+      prevBtn.disabled = data.first;
+      nextBtn.disabled = data.last;
+
+      prevBtn.onclick = () => !data.first && loadRecommendations(data.number - 1);
+      nextBtn.onclick = () => !data.last && loadRecommendations(data.number + 1);
+
+      statusDiv.textContent = `✅ 已返回 ${data.content.length} 条推荐结果`;
+
+    } catch (err) {
+      console.error("加载失败", err);
+      statusDiv.innerHTML = '<span style="color:red">❌ 请求失败，请检查后端是否运行</span>';
+    }
+  }
+
+  /**
+   * 调用后端手动刷新缓存
+   */
+  async function refreshRecommendCache() {
+    if (!confirm("确定要强制刷新推荐缓存吗？这将重新分析所有日志")) return;
+
+    const statusDiv = document.getElementById('recommendStatus');
+    statusDiv.textContent = '🔄 正在刷新缓存...';
+
+    try {
+      const res = await fetch('http://localhost:8080/api/admin/refresh-recommend-cache', {
+        method: 'POST'
+      });
+      const result = await res.json();
+
+      if (result.status === 'success') {
+        alert(result.message);
+        refreshRecommendList(); // 刷新推荐列表
+      } else {
+        alert(result.message);
+      }
+    } catch (err) {
+      console.error("请求失败", err);
+      alert("❌ 请求失败，请检查后端是否运行");
+    }
+  }
+
+  // ============ 低库存提醒 ============
+  async function showLowStockWarning() {
+    try {
+      const res = await fetch('http://localhost:8080/api/alerts/low-stock');
+      const lowStockItems = await res.json();
+      if (lowStockItems.length > 0) {
+        const message = `⚠️ 当前有 ${lowStockItems.length} 种商品库存紧张：\n\n` +
+            lowStockItems.map(p => `• ${p.name}（库存：${p.stock}）`).join('\n');
+        if (confirm(message)) {
+          renderPage('product-list');
+        }
+      }
+    } catch (err) {
+      console.warn("无法加载库存警告信息", err);
+    }
+  }
+
+  // ============ 初始化 ============
+  window.onload = async () => {
     renderPage('add-product');
     autoFillProductId();
 
-    // 启动定时提醒（每30分钟一次）
-    setInterval(showLowStockWarning, 1000 * 60 * 30);
+    setInterval(showLowStockWarning, 1000 * 60 * 30); // 每30分钟提醒一次
 
     try {
-        // ✅ 使用 await 等待两个操作完成
-        await loadProducts();
-        await loadLogs();
-        showLowStockWarning(); // 数据都加载完了再弹窗
+      await loadProducts(0);
+      await loadLogs();
+      showLowStockWarning();
     } catch (err) {
-        console.error("初始化加载失败", err);
-        showStatus("⚠️ 部分数据加载失败，请检查网络");
+      showStatus("⚠️ 部分数据加载失败，请检查网络");
     }
-};
+  };
 </script>
 </body>
 </html>

@@ -9,6 +9,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -78,6 +80,13 @@ public class ProductService {
     /**
      * 获取所有商品
      */
+    public Page<Product> getAllProducts(Pageable pageable) {
+        return productRepo.findAll(pageable);
+    }
+
+    /**
+     * 获取所有商品（用于 Excel 导出）
+     */
     public List<Product> getAllProducts() {
         return productRepo.findAll();
     }
@@ -124,15 +133,41 @@ public class ProductService {
 
 
     /**
-     * 更新商品信息（用于修改库存等）
+     * 更新商品信息（用于入库/出库）
      */
     public boolean updateProduct(String id, Product updated) {
-        if (!productRepo.existsById(id)) {
+        Optional<Product> optionalOld = productRepo.findById(id);
+        if (optionalOld.isEmpty()) {
             return false;
         }
-        productRepo.save(updated); // JPA 会自动更新
-        return true;
+
+        Product old = optionalOld.get();
+        int oldStock = old.getStock();
+        int newStock = updated.getStock();
+
+        // 判断是否为“入库”操作（库存增加了）
+        if (newStock > oldStock) {
+            // 是入库 → 更新最后入库时间
+            updated.setLastRestockDate(LocalDateTime.now());
+        }
+        // 出库或不变 → 不更新该字段
+
+        // 保留其他字段一致性
+        updated.setCreatedAt(old.getCreatedAt()); // 防止创建时间被修改
+        updated.setBuyPrice(old.getBuyPrice());   // 进价不能通过此接口修改
+        updated.setSellPrice(old.getSellPrice());
+
+        try {
+            productRepo.save(updated);
+            return true;
+        } catch (Exception e) {
+            System.err.println("更新商品失败：" + e.getMessage());
+            return false;
+        }
     }
+
+
+
 
     /**
      * 统计各分类数量

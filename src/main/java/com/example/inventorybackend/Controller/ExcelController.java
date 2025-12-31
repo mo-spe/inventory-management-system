@@ -45,6 +45,7 @@ public class ExcelController {
     /**
      * 导入商品（从 Excel 文件）
      */
+    // ExcelController.java
     @PostMapping("/import")
     public ResponseEntity<String> handleImport(@RequestParam("file") MultipartFile file) {
         try {
@@ -52,35 +53,42 @@ public class ExcelController {
 
             int successCount = 0;
             for (Product p : imported) {
-                boolean isUpdate = productService.findById(p.getId()) != null;
+                boolean exists = productService.findById(p.getId()) != null;
 
-                if (isUpdate) {
-                    // 是更新：比较库存变化 → 记录入库/出库
+                if (exists) {
+                    // 是已有商品 → 比较库存变化
                     Product old = productService.findById(p.getId());
                     int diff = p.getStock() - old.getStock();
 
-                    // 执行更新
-                    productService.updateProduct(p.getId(), p);
+                    // 执行更新（会自动判断是否为入库）
+                    boolean updated = productService.updateProduct(p.getId(), p);
 
-                    if (diff > 0) {
-                        productService.logStockChange(p.getId(), p.getName(), "入库", diff);
-                    } else if (diff < 0) {
-                        productService.logStockChange(p.getId(), p.getName(), "出库", Math.abs(diff));
+                    if (updated) {
+                        // 记录出入库日志
+                        if (diff > 0) {
+                            productService.logStockChange(p.getId(), p.getName(), "入库", diff);
+                        } else if (diff < 0) {
+                            productService.logStockChange(p.getId(), p.getName(), "出库", Math.abs(diff));
+                        }
+                        successCount++;
                     }
                 } else {
-                    // 是新增商品
-                    productService.addProduct(p);
-                    productService.logStockChange(p.getId(), p.getName(), "上架", p.getStock());
+                    // 新商品 → 添加 + 上架日志
+                    boolean added = productService.addProduct(p);
+                    if (added) {
+                        productService.logStockChange(p.getId(), p.getName(), "上架", p.getStock());
+                        successCount++;
+                    }
                 }
-
-                successCount++;
             }
 
             return ResponseEntity.ok("✅ 成功处理 " + successCount + " 条商品");
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(500).body("❌ 导入失败：" + e.getMessage());
         }
     }
+
 
 }
 

@@ -5,6 +5,8 @@ package com.example.inventorybackend.Controller;
 import com.example.inventorybackend.Service.ProductService;
 import com.example.inventorybackend.entity.Product;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,11 +29,16 @@ public class ProductController {
 
     /**
      * GET /api/products
-     * 获取所有商品
+     * 分页查询所有商品
      */
     @GetMapping("/products")
-    public List<Product> getAllProducts() {
-        return productService.getAllProducts();
+    public ResponseEntity<Page<Product>> getProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        PageRequest pageable = PageRequest.of(page, size);
+        Page<Product> productPage = productService.getAllProducts(pageable);
+        return ResponseEntity.ok(productPage);
     }
 
     /**
