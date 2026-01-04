@@ -12,9 +12,25 @@
 
 ## 🖼️ 截图预览
 <!-- 将来可以放截图 -->
+
 ![系统截图](screenshots/screenshot1.png)
 
+![bba3618325316ce8366507d968cd568a](C:\Users\a0610\Documents\Tencent Files\1774714857\nt_qq\nt_data\Pic\2026-01\Ori\bba3618325316ce8366507d968cd568a.png)
+
+![775a8975338b5bbf4734f4d2d95cf4e6](C:\Users\a0610\Documents\Tencent Files\1774714857\nt_qq\nt_data\Pic\2026-01\Ori\775a8975338b5bbf4734f4d2d95cf4e6.png)
+
+![fd58694763591b17354b6ad472411c21](C:\Users\a0610\Documents\Tencent Files\1774714857\nt_qq\nt_data\Pic\2026-01\Ori\fd58694763591b17354b6ad472411c21.png)
+
+![04a875106382b9eab81d75d4417dc5a1](C:\Users\a0610\Documents\Tencent Files\1774714857\nt_qq\nt_data\Pic\2026-01\Ori\04a875106382b9eab81d75d4417dc5a1.png)
+
+![dc234cc4e1462bd539ee1278af9f5264](C:\Users\a0610\Documents\Tencent Files\1774714857\nt_qq\nt_data\Pic\2026-01\Ori\dc234cc4e1462bd539ee1278af9f5264.png)
+
+![00a4f1b33e12fcb693d61860ea493f7a](C:\Users\a0610\Documents\Tencent Files\1774714857\nt_qq\nt_data\Pic\2026-01\Ori\00a4f1b33e12fcb693d61860ea493f7a.png)
+
+![564ccf2f4201c060276205d913969ab6](C:\Users\a0610\Documents\Tencent Files\1774714857\nt_qq\nt_data\Pic\2026-01\Ori\564ccf2f4201c060276205d913969ab6.png)
+
 ## 📦 技术栈
+
 | 类型   | 技术                    |
 | ------ | ----------------------- |
 | 后端   | Java + SpringBoot       |
