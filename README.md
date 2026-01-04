@@ -13,21 +13,28 @@
 ## 🖼️ 截图预览
 <!-- 将来可以放截图 -->
 
-![系统截图](screenshots/screenshot1.png)
+## 🖼️ 截图预览
 
-![bba3618325316ce8366507d968cd568a](C:\Users\a0610\Documents\Tencent Files\1774714857\nt_qq\nt_data\Pic\2026-01\Ori\bba3618325316ce8366507d968cd568a.png)
+### 1. 登录页面
+![登录页面](./screenshots/login.png)
 
-![775a8975338b5bbf4734f4d2d95cf4e6](C:\Users\a0610\Documents\Tencent Files\1774714857\nt_qq\nt_data\Pic\2026-01\Ori\775a8975338b5bbf4734f4d2d95cf4e6.png)
+### 2. 主界面
+![主界面](./screenshots/dashboard.png)
 
-![fd58694763591b17354b6ad472411c21](C:\Users\a0610\Documents\Tencent Files\1774714857\nt_qq\nt_data\Pic\2026-01\Ori\fd58694763591b17354b6ad472411c21.png)
+### 3. 库存管理
+![库存管理](./screenshots/inventory.png)
 
-![04a875106382b9eab81d75d4417dc5a1](C:\Users\a0610\Documents\Tencent Files\1774714857\nt_qq\nt_data\Pic\2026-01\Ori\04a875106382b9eab81d75d4417dc5a1.png)
+### 4. 智能推荐
+![智能推荐](./screenshots/recommend.png)
 
-![dc234cc4e1462bd539ee1278af9f5264](C:\Users\a0610\Documents\Tencent Files\1774714857\nt_qq\nt_data\Pic\2026-01\Ori\dc234cc4e1462bd539ee1278af9f5264.png)
+### 5. 报表中心
+![报表中心](./screenshots/report.png)
 
-![00a4f1b33e12fcb693d61860ea493f7a](C:\Users\a0610\Documents\Tencent Files\1774714857\nt_qq\nt_data\Pic\2026-01\Ori\00a4f1b33e12fcb693d61860ea493f7a.png)
+### 6. 系统设置
+![系统设置](./screenshots/settings.png)
 
-![564ccf2f4201c060276205d913969ab6](C:\Users\a0610\Documents\Tencent Files\1774714857\nt_qq\nt_data\Pic\2026-01\Ori\564ccf2f4201c060276205d913969ab6.png)
+### 7. 数据分析
+![数据分析](./screenshots/analysis.png)
 
 ## 📦 技术栈
 
