@@ -4,15 +4,21 @@ import com.example.inventorybackend.Service.RecommendationService;
 import com.example.inventorybackend.Service.ReplenishmentService;
 import com.example.inventorybackend.Service.SKUStatsService;
 import com.example.inventorybackend.entity.SKUStats;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @CrossOrigin
 @RequestMapping("/api/recommend")
+@Tag(name = "智能推荐", description = "商品推荐和补货建议")
 public class RecommendationController {
 
     @Autowired
@@ -28,13 +34,14 @@ public class RecommendationController {
      * GET /api/recommend/top?page=0&size=10
      * 返回分页推荐结果
      */
+    @Operation(summary = "获取推荐列表", description = "分页获取商品推荐列表，包含补货建议")
     @GetMapping("/top")
     public Map<String, Object> getTopKWithPaging(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "10") int topK,  // 新增topK参数，默认为10
-            @RequestParam(required = false) String category,
-            @RequestParam(defaultValue = "0.0") double minScore) {
+            @Parameter(description = "页码") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "每页大小") @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "推荐商品总数") @RequestParam(defaultValue = "10") int topK,  // 新增topK参数，默认为10
+            @Parameter(description = "商品分类筛选") @RequestParam(required = false) String category,
+            @Parameter(description = "最低得分") @RequestParam(defaultValue = "0.0") double minScore) {
         
         // 参数验证
         if (page < 0) {
@@ -49,7 +56,15 @@ public class RecommendationController {
 
         List<Map<String, Object>> allItems = recommendationService.getTopK(topK, category);  // 使用topK参数而不是硬编码的100
 
-        int totalElements = allItems.size();
+        // 根据最低得分过滤商品
+        List<Map<String, Object>> filteredItems = new ArrayList<>();
+        for (Map<String, Object> item : allItems) {
+            if ((Double) item.get("score") >= minScore) {
+                filteredItems.add(item);
+            }
+        }
+
+        int totalElements = filteredItems.size();
         int totalPages = (int) Math.ceil((double) totalElements / size);
         boolean isFirst = page <= 0;
         boolean isLast = page >= totalPages - 1 || totalPages == 0;
@@ -59,7 +74,8 @@ public class RecommendationController {
 
         List<Map<String, Object>> paginatedList = new ArrayList<>();
         for (int i = start; i < end; i++) {
-            Map<String, Object> reco = allItems.get(i);
+            Map<String, Object> reco = filteredItems.get(i);
+            
             SKUStats stats = statsService.getStats((String) reco.get("id"));
             if (stats == null) {
                 // 添加日志记录缺失的统计信息

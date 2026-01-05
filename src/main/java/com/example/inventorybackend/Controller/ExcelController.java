@@ -1,15 +1,17 @@
 package com.example.inventorybackend.Controller;
 
-// ExcelController.java
 import com.example.inventorybackend.Service.ExcelService;
 import com.example.inventorybackend.Service.ProductService;
 import com.example.inventorybackend.entity.Product;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.IOException;
 import java.util.List;
@@ -17,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/excel")
 @CrossOrigin
+@Tag(name = "Excel管理", description = "商品Excel导入导出功能")
 public class ExcelController {
 
     @Autowired
@@ -28,6 +31,7 @@ public class ExcelController {
     /**
      * 导出所有商品到 Excel
      */
+    @Operation(summary = "导出商品到Excel", description = "将所有商品导出为Excel文件")
     @GetMapping("/export")
     public void export(HttpServletResponse response) throws IOException {
         List<Product> products = productService.getAllProducts();
@@ -46,8 +50,12 @@ public class ExcelController {
      * 导入商品（从 Excel 文件）
      */
     // ExcelController.java
-    @PostMapping("/import")
-    public ResponseEntity<String> handleImport(@RequestParam("file") MultipartFile file) {
+    @Operation(summary = "从Excel导入商品", description = "从Excel文件导入商品信息")
+    @PostMapping(value = "/import", consumes = "multipart/form-data")
+    public ResponseEntity<String> handleImport(@Parameter(description = "Excel文件",
+                                                 required = true)
+                                                   @RequestParam("file") MultipartFile file)
+    {
         try {
             List<Product> imported = excelService.importProductsFromExcel(file);
 
@@ -91,4 +99,3 @@ public class ExcelController {
 
 
 }
-

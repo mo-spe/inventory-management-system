@@ -1,3 +1,6 @@
+# application.yml
+
+# Spring基础配置
 spring:
   application:
     name: inventory-backend
@@ -16,31 +19,39 @@ spring:
       hibernate:
         format_sql: true
         default_batch_fetch_size: 16
-        # 修改：去掉硬编码的57Dialect，让Hibernate自动选择
         dialect: org.hibernate.dialect.MySQLDialect
 
+  # Swagger配置（新增）
+  springdoc:
+    api-docs:
+      enabled: true
+      path: /v3/api-docs
+    swagger-ui:
+      path: /swagger-ui.html
+      operationsSorter: method      # 按方法排序（GET/POST/PUT/DELETE）
+      tagsSorter: alpha            # 按标签字母排序
+      docExpansion: none           # 折叠所有接口
+      defaultModelRendering: model # 显示模型而非示例
+
+# 日志配置
 logging:
   level:
-    # Spring JDBC - 显示SQL和参数（调试时需要）
-    org.springframework.jdbc: INFO           # 从DEBUG降为INFO，减少连接池等杂讯
-    org.springframework.jdbc.core.JdbcTemplate: DEBUG  # 只开启模板的DEBUG
+    org.springframework.jdbc: INFO
+    org.springframework.jdbc.core.JdbcTemplate: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.type: INFO
+    org.hibernate.orm.jdbc.bind: INFO
+    com.example.inventory: DEBUG
+    org.springframework.transaction: INFO
+    org.springframework.web: INFO
+    org.springframework.security: INFO
 
-    # Hibernate - 关键SQL信息
-    org.hibernate.SQL: DEBUG                 # 保持，显示执行的SQL
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE # 改为INFO或WARN，参数绑定太详细
-    org.hibernate.type: INFO                 # 类型处理设为INFO
-    org.hibernate.orm.jdbc.bind: INFO        # 绑定器设为INFO
-
-    # 你自己的包 - 根据需求调整
-    com.example.inventory: DEBUG             # 保持DEBUG，方便调试业务逻辑
-
-    # 其他常用框架组件
-    org.springframework.transaction: INFO    # 事务管理设为INFO
-    org.springframework.web: INFO            # Web层设为INFO
-    org.springframework.security: INFO       # 安全相关设为INFO（如有）
-
+# 服务器配置
 server:
   port: 8080
+
+# 推荐算法配置
 recommendation:
   weights:
     sales: 0.4

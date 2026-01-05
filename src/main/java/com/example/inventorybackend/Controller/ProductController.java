@@ -4,6 +4,9 @@ package com.example.inventorybackend.Controller;
 
 import com.example.inventorybackend.Service.ProductService;
 import com.example.inventorybackend.entity.Product;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,6 +23,7 @@ import java.util.HashMap;
 @RestController
 @CrossOrigin  // 允许前端跨域访问
 @RequestMapping("/api")
+@Tag(name = "商品管理", description = "商品的增删改查操作")
 public class ProductController {
 
     @Autowired
@@ -31,10 +35,11 @@ public class ProductController {
      * GET /api/products
      * 分页查询所有商品
      */
+    @Operation(summary = "获取商品列表", description = "分页获取商品列表")
     @GetMapping("/products")
     public ResponseEntity<Page<Product>> getProducts(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @Parameter(description = "页码") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "每页大小") @RequestParam(defaultValue = "10") int size) {
 
         PageRequest pageable = PageRequest.of(page, size);
         Page<Product> productPage = productService.getAllProducts(pageable);
@@ -45,8 +50,9 @@ public class ProductController {
      * GET /api/products/{id}
      * 根据 ID 查找商品
      */
+    @Operation(summary = "根据ID获取商品", description = "根据商品ID获取商品详细信息")
     @GetMapping("/products/{id}")
-    public ResponseEntity<?> findById(@PathVariable String id) {
+    public ResponseEntity<?> findById(@Parameter(description = "商品ID") @PathVariable String id) {
         Product product = productService.findById(id);
         if (product != null) {
             return ResponseEntity.ok(product);
@@ -59,8 +65,9 @@ public class ProductController {
      * POST /api/products
      * 添加新商品
      */
+    @Operation(summary = "添加商品", description = "添加新的商品到系统")
     @PostMapping("/products")
-    public ResponseEntity<Map<String, Object>> addProduct(@RequestBody Product product) {
+    public ResponseEntity<Map<String, Object>> addProduct(@Parameter(description = "商品信息") @RequestBody Product product) {
         Map<String, Object> result = new HashMap<>();
 
         boolean success = productService.addProduct(product);
@@ -79,10 +86,11 @@ public class ProductController {
      * PUT /api/products/{id}
      * 更新商品信息（用于入库/出库）
      */
+    @Operation(summary = "更新商品", description = "更新商品信息（用于入库/出库操作）")
     @PutMapping("/products/{id}")
     public ResponseEntity<Map<String, Object>> updateProduct(
-            @PathVariable String id,
-            @RequestBody Product updated) {
+            @Parameter(description = "商品ID") @PathVariable String id,
+            @Parameter(description = "更新后的商品信息") @RequestBody Product updated) {
 
         Map<String, Object> result = new HashMap<>();
         Product old = productService.findById(id);
@@ -118,8 +126,9 @@ public class ProductController {
      * DELETE /api/products/{id}
      * 删除商品
      */
+    @Operation(summary = "删除商品", description = "根据ID删除指定商品")
     @DeleteMapping("/products/{id}")
-    public ResponseEntity<Map<String, Object>> deleteById(@PathVariable String id) {
+    public ResponseEntity<Map<String, Object>> deleteById(@Parameter(description = "商品ID") @PathVariable String id) {
         Map<String, Object> result = new HashMap<>();
 
         Product p = productService.findById(id);
@@ -147,6 +156,7 @@ public class ProductController {
      * GET /api/generate-id
      * 自动生成下一个商品编号（如 SP0003）
      */
+    @Operation(summary = "生成商品编号", description = "自动生成下一个可用的商品编号")
     @GetMapping("/products/generate-id")
     public String generateNextId() {
         return productService.generateNextId();
@@ -156,6 +166,7 @@ public class ProductController {
      * GET /api/stats/category
      * 统计各分类数量（用于图表）
      */
+    @Operation(summary = "获取分类统计", description = "统计各分类商品数量")
     @GetMapping("/stats/category")
     public Map<String, Integer> getCategoryStats() {
         return productService.getCategoryStats();
@@ -165,6 +176,7 @@ public class ProductController {
      * GET /api/alerts/low-stock
      * 获取低库存商品列表（<10）
      */
+    @Operation(summary = "获取低库存商品", description = "获取库存低于10的商品列表")
     @GetMapping("/alerts/low-stock")
     public List<Product> getLowStockProducts() {
         return productService.getLowStockProducts();
