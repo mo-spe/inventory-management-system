@@ -8,9 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,22 +30,41 @@ public class RecommendationService {
     private SKUStatsService skuStatsService;
 
     public List<Map<String, Object>> getTopK(int k, String category) {
-        return getAllRanked().stream()
-                .filter(item -> category == null || category.isEmpty() ||
-                        item.get("category").equals(category))
-                .limit(k)
-                .collect(Collectors.toList());
-    }
+        if (k <= 0) {
+            return new ArrayList<>();
+        }
+        
+        // 使用最小堆优化Top-K算法，时间复杂度O(n log k)
+        PriorityQueue<Map<String, Object>> minHeap = new PriorityQueue<>(
+                (a, b) -> ((Double) a.get("score")).compareTo((Double) b.get("score"))
+        );
 
-    private List<Map<String, Object>> getAllRanked() {
-        return skuStatsService.getAllStats().stream()
-                .map(this::toScoredItem)
-                .sorted((a, b) -> {
-                    Double scoreA = (Double) a.get("score");
-                    Double scoreB = (Double) b.get("score");
-                    return scoreB.compareTo(scoreA); // 降序：高分在前
-                })
-                .collect(Collectors.toList());
+        for (SKUStats stats : skuStatsService.getAllStats()) {
+            Map<String, Object> scoredItem = toScoredItem(stats);
+            
+            // 如果指定了类别且不匹配，则跳过
+            if (category != null && !category.isEmpty() && 
+                !scoredItem.get("category").equals(category)) {
+                continue;
+            }
+            
+            if (minHeap.size() < k) {
+                minHeap.offer(scoredItem);
+            } else if ((Double) scoredItem.get("score") > (Double) minHeap.peek().get("score")) {
+                minHeap.poll();
+                minHeap.offer(scoredItem);
+            }
+        }
+
+        // 将堆中元素取出并按分数降序排列
+        List<Map<String, Object>> result = new ArrayList<>();
+        while (!minHeap.isEmpty()) {
+            result.add(minHeap.poll());
+        }
+
+        // 反转列表以获得降序排列（从最高分到最低分）
+        Collections.reverse(result);
+        return result;
     }
 
     private Map<String, Object> toScoredItem(SKUStats s) {

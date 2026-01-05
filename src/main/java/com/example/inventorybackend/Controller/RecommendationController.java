@@ -10,23 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-// RecommendationController.java
-// RecommendationController.java
-import com.example.inventorybackend.Service.RecommendationService;
-import com.example.inventorybackend.Service.ReplenishmentService;
-import com.example.inventorybackend.Service.SKUStatsService;
-import com.example.inventorybackend.entity.SKUStats;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-// RecommendationController.java
-// RecommendationController.java
-// RecommendationController.java
 @RestController
 @CrossOrigin
 @RequestMapping("/api/recommend")
@@ -49,10 +32,22 @@ public class RecommendationController {
     public Map<String, Object> getTopKWithPaging(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "10") int topK,  // 新增topK参数，默认为10
             @RequestParam(required = false) String category,
             @RequestParam(defaultValue = "0.0") double minScore) {
+        
+        // 参数验证
+        if (page < 0) {
+            page = 0;
+        }
+        if (size <= 0 || size > 100) {  // 限制每页最大数量
+            size = 10;
+        }
+        if (topK <= 0 || topK > 1000) {  // 限制topK最大值
+            topK = 10;
+        }
 
-        List<Map<String, Object>> allItems = recommendationService.getTopK(100, category);
+        List<Map<String, Object>> allItems = recommendationService.getTopK(topK, category);  // 使用topK参数而不是硬编码的100
 
         int totalElements = allItems.size();
         int totalPages = (int) Math.ceil((double) totalElements / size);
@@ -66,7 +61,11 @@ public class RecommendationController {
         for (int i = start; i < end; i++) {
             Map<String, Object> reco = allItems.get(i);
             SKUStats stats = statsService.getStats((String) reco.get("id"));
-            if (stats == null) continue;
+            if (stats == null) {
+                // 添加日志记录缺失的统计信息
+                System.out.println("警告: 商品ID " + reco.get("id") + " 未找到统计信息");
+                continue;
+            }
 
             Map<String, Object> advice = replenishmentService.advise(stats);
             Map<String, Object> merged = new LinkedHashMap<>(reco);
@@ -86,6 +85,3 @@ public class RecommendationController {
         return result;
     }
 }
-
-
-

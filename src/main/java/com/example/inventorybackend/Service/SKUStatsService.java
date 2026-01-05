@@ -7,6 +7,7 @@ import com.example.inventorybackend.entity.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -111,5 +113,11 @@ public class SKUStatsService {
 
     public SKUStats getStats(String productId) {
         return cache.get(productId);
+    }
+
+    @Async("cacheUpdateExecutor")
+    public CompletableFuture<Void> rebuildCacheAsync() {
+        rebuildCache();
+        return CompletableFuture.completedFuture(null);
     }
 }

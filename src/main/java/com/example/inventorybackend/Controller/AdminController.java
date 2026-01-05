@@ -26,8 +26,8 @@ public class AdminController {
     @PostMapping("/refresh-recommend-cache")
     public String refreshRecommendCache() {
         try {
-            skuStatsService.rebuildCache();
-            return "{\"status\":\"success\",\"message\":\"✅ 推荐缓存已刷新\"}";
+            skuStatsService.rebuildCacheAsync(); // 异步执行缓存重建
+            return "{\"status\":\"success\",\"message\":\"✅ 推荐缓存刷新任务已启动\"}";
         } catch (Exception e) {
             return "{\"status\":\"error\",\"message\":\"❌ 刷新失败：" + e.getMessage() + "\"}";
         }

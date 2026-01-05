@@ -778,7 +778,7 @@ async function loadProducts(page = 0) {
       const category = document.getElementById('categoryFilter')?.value || '';
       const minScore = parseFloat(document.getElementById('minScore')?.value) || 0;
 
-      let url = `http://localhost:8080/api/recommend/top?page=${page}&size=${recommendPageSize}`;
+      let url = `http://localhost:8080/api/recommend/top?page=${page}&size=${recommendPageSize}&topK=${topKValue}`;
       if (category) url += `&category=${encodeURIComponent(category)}`;
       if (minScore > 0) url += `&minScore=${minScore}`;
 
