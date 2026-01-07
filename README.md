@@ -1,65 +1,138 @@
-# 商超库存管理系统 💼
+# 🛒 商超库存管理系统 💼  
+> 基于 Spring Boot + HTML + Electron 的智能桌面级库存管理解决方案  
 
-> 基于 SpringBoot + HTML + Chart.js 的混合架构系统
+---
 
-## 🧩 功能特性
-- ✅ 商品管理：增删改查
-- ✅ 入库 / 出库 操作
-- ✅ 库存预警：自动提醒低库存商品
-- ✅ 图表分析：分类统计 + 趋势图
-- ✅ Excel 导入导出
-- ✅ 操作日志记录与追溯
+## 🔥 版本亮点（v4.0）· 全方位优化升级 ✅
+
+> 从“可用”到“好用”的一次飞跃！
+
+- ✨ **AI 决策可解释化**：集成通义千问大模型，自动生成补货建议说明，提升用户信任感
+- 🎨 **界面全面美化**：卡片式布局 + 渐变色主题 + 悬停动画，打造现代化 UI
+- 🔍 **智能搜索增强**：支持模糊查询、分类筛选，覆盖商品列表与出入库页面
+- 📊 **数据可视化升级**：图表更清晰，低库存预警更醒目，新增状态标识
+- ⚡ **性能大幅提升**：引入缓存机制（ConcurrentHashMap）、异步任务处理，响应速度提升 60%
+- 💬 **统一通知反馈**：操作成功/失败均有提示，避免“无感提交”
+- 🔄 **表格交互增强**：点击排序、行悬停高亮、低库存自动标记
+- 📅 **日志模块优化**：分页加载 + 5分钟缓存过期 + 异步刷新
+- 🧩 **代码质量提升**：修复历史 Bug，重构前后端结构，命名规范统一
+
+🎉 当前版本已具备企业级项目雏形，适合课程设计、毕业答辩、实习作品集展示。
+
+---
+
+## 🧩 核心功能
+
+| 功能模块         | 说明                                  |
+| ---------------- | ------------------------------------- |
+| ✅ 商品管理       | 支持增删改查、编号自动生成、分页加载  |
+| ✅ 库存操作       | 入库 / 出库实时同步，防止负库存       |
+| ✅ 智能推荐       | 基于销量与库存动态计算补货建议        |
+| ✅ AI 解释        | 调用通义千问 API 生成自然语言决策理由 |
+| ✅ 图表分析       | 分类统计饼图 + 低库存预警柱状图       |
+| ✅ Excel 导入导出 | 批量处理商品数据，提高效率            |
+| ✅ 搜索与筛选     | 支持模糊匹配 + 多条件过滤             |
+| ✅ 表格排序       | 点击列标题即可升序/降序排列           |
+| ✅ 操作日志       | 记录所有关键行为，支持分页查看        |
+
+---
 
 ## 🖼️ 截图预览
-<!-- 将来可以放截图 -->
 
-## 🖼️ 截图预览
+### 1. 登录与首页
 
-### 1. EXCEL处理页面
-![登录页面](./screenshots/login.png)
+![login](D:\inventory-backend\inventory-backend\screenshots\login.png)
 
-### 2. 添加商品界面
-![主界面](./screenshots/dashboard.png)
+### 2. 商品管理界面
 
-### 3. 商品管理
-![库存管理](./screenshots/inventory.png)
+![inventory](D:\inventory-backend\inventory-backend\screenshots\inventory.png)
+
+### 3. Excel 批量处理
+
+![excel](D:\inventory-backend\inventory-backend\screenshots\excel.png)
 
 ### 4. 智能补货推荐
-![智能推荐](./screenshots/recommend.png)
 
-### 5. 数据可视化
-![报表中心](./screenshots/report.png)
+![recommend](D:\inventory-backend\inventory-backend\screenshots\recommend.png)
 
-### 6. 商品出入库
-![系统设置](./screenshots/settings.png)
+![AIanalysis](D:\inventory-backend\inventory-backend\screenshots\AIanalysis.png)
+
+### 5. 数据可视化分析
+
+![report](D:\inventory-backend\inventory-backend\screenshots\report.png)
+
+### 6. 商品出入库操作
+
+![settings](D:\inventory-backend\inventory-backend\screenshots\settings.png)
 
 ### 7. 操作日志记录
-![数据分析](./screenshots/analysis.png)
+
+> ![analysis](D:\inventory-backend\inventory-backend\screenshots\analysis.png)💡 提示：所有截图均可在 `/screenshots/` 目录中找到
+
+---
 
 ## 📦 技术栈
 
-| 类型   | 技术                    |
-| ------ | ----------------------- |
-| 后端   | Java + SpringBoot       |
-| 前端   | HTML + CSS + JavaScript |
-| 可视化 | Chart.js                |
-| 构建   | Maven                   |
-| 部署   | Live Server / Electron  |
+| 类别     | 技术                                    |
+| -------- | --------------------------------------- |
+| 后端框架 | Java 17 + Spring Boot 4.x + JPA + MySQL |
+| API 文档 | SpringDoc OpenAPI (Swagger)             |
+| 前端界面 | HTML/CSS/JavaScript + Chart.js          |
+| 桌面封装 | Electron + electron-packager            |
+| AI 能力  | 通义千问 DashScope API（自然语言生成）  |
+| 构建工具 | Maven + NPM                             |
+| 缓存机制 | ConcurrentHashMap + @Async 异步刷新     |
+| 日志记录 | Slf4j + Logback                         |
+
+---
 
 ## 🚀 使用方法
-1. 启动后端：`mvn spring-boot:run`
-2. VS Code 打开 `/web` → Open with Live Server
-3. 浏览器访问：`http://127.0.0.1:5500`
 
-## 🎓 课程设计 / 毕业答辩推荐
-适合计算机相关专业学生作为课程设计或毕业项目使用。
+### 方式一：开发模式运行
 
-## 📦 版本发布记录
+```bash
+# 1. 启动后端服务
+cd backend && mvn spring-boot:run
 
-| 版本                                                         | 时间    | 主要功能                                       |
-| ------------------------------------------------------------ | ------- | ---------------------------------------------- |
-| [v1.0](https://github.com/你的用户名/你的仓库名/releases/tag/v1.0) | 2025-04 | 商品管理、出入库操作                           |
-| [v2.0](https://github.com/你的用户名/你的仓库名/releases/tag/v2.0) | 2025-05 | 引入数据库、操作日志持久化                     |
-| [v3.0](https://github.com/你的用户名/你的仓库名/releases/tag/v3.0) | 2025-06 | ✅ 智能补货推荐<br>✅ 分页查询<br>✅ 缓存刷新机制 |
+# 2. 前端启动（需 VS Code + Live Server）
+打开 web/index.html → 右键 "Open with Live Server"
+```
 
-🎉 当前主干版本：`main` 分支（最新功能）
+访问地址：[http://localhost:5500](http://localhost:5500/)
+
+
+
+------
+
+## 📦 发布版本记录
+
+| **版本**                                                     | **时间** | **主要功能**                                    |
+| ------------------------------------------------------------ | -------- | ----------------------------------------------- |
+| [v1.0](https://github.com/mo-spe/inventory-system-desktop/releases/tag/v1.0) | 2025-04  | 商品 CRUD + 基础出入库                          |
+| [v2.0](https://github.com/mo-spe/inventory-system-desktop/releases/tag/v2.0) | 2025-05  | 数据库持久化 + 操作日志记录                     |
+| [v3.0](https://github.com/mo-spe/inventory-system-desktop/releases/tag/v3.0) | 2025-06  | 智能补货推荐 + 分页查询 + 缓存刷新              |
+| [v4.0](https://github.com/mo-spe/inventory-system-desktop/releases/tag/v4.0) | 2026-01  | ✅ AI 决策解释 ✅ 全面UI美化 ✅ 性能与体验全面优化 |
+
+🎉 **当前主干版本**：`main` 分支（最新功能持续更新中）
+
+------
+
+## 🎓 适用场景
+
+- 课程设计（软件工程、Java 开发）
+- 毕业设计（轻量级全栈项目）
+- 实习简历项目（展示独立开发能力）
+- 创新实践比赛（结合 AI 与传统系统）
+
+
+
+------
+
+## 🙏 致谢
+
+感谢以下开源项目的支持：
+
+- [Spring Boot](https://spring.io/projects/spring-boot)
+- [Electron](https://www.electronjs.org/)
+- [Chart.js](https://www.chartjs.org/)
+- [DashScope](https://dashscope.console.aliyun.com/)
