@@ -41,33 +41,33 @@
 
 ### 1. 登录与首页
 
-![login](screenshots\login.png)
+![login](screenshots/login.png)
 
 ### 2. 商品管理界面
 
-![inventory](screenshots\inventory.png)
+![inventory](screenshots/inventory.png)
 
 ### 3. Excel 批量处理
 
-![excel](screenshots\excel.png)
+![excel](screenshots/excel.png)
 
 ### 4. 智能补货推荐
 
-![recommend](screenshots\recommend.png)
+![recommend](screenshots/recommend.png)
 
-![AIanalysis](screenshots\AIanalysis.png)
+![AIanalysis](screenshots/AIanalysis.png)
 
 ### 5. 数据可视化分析
 
-![report](screenshots\report.png)
+![report](screenshots/report.png)
 
 ### 6. 商品出入库操作
 
-![settings](screenshots\settings.png)
+![settings](screenshots/settings.png)
 
 ### 7. 操作日志记录
 
-> ![analysis](screenshots\analysis.png)💡 提示：所有截图均可在 `/screenshots/` 目录中找到
+> ![analysis](screenshots/analysis.png)💡 提示：所有截图均可在 `/screenshots/` 目录中找到
 
 ---
 
