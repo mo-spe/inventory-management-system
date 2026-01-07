@@ -47,6 +47,17 @@ public class ProductController {
     }
 
     /**
+     * GET /api/products/search
+     * 模糊搜索商品
+     */
+    @Operation(summary = "搜索商品", description = "根据关键词模糊搜索商品（支持编号、名称、分类）")
+    @GetMapping("/products/search")
+    public List<Product> searchProducts(
+            @Parameter(description = "搜索关键词") @RequestParam String keyword) {
+        return productService.searchProducts(keyword);
+    }
+
+    /**
      * GET /api/products/{id}
      * 根据 ID 查找商品
      */
@@ -182,6 +193,3 @@ public class ProductController {
         return productService.getLowStockProducts();
     }
 }
-
-
-

@@ -1,5 +1,6 @@
 package com.example.inventorybackend.Controller;
 
+import com.example.inventorybackend.Service.AIDecisionService;
 import com.example.inventorybackend.Service.RecommendationService;
 import com.example.inventorybackend.Service.ReplenishmentService;
 import com.example.inventorybackend.Service.SKUStatsService;
@@ -8,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -30,6 +32,8 @@ public class RecommendationController {
     @Autowired
     private ReplenishmentService replenishmentService;
 
+    @Autowired
+    private AIDecisionService aiDecisionService;
     /**
      * GET /api/recommend/top?page=0&size=10
      * 返回分页推荐结果
@@ -100,4 +104,21 @@ public class RecommendationController {
         result.put("last", isLast);
         return result;
     }
+
+    /**
+     * GET /api/recommend/explain
+     * 获取AI对补货建议的解释
+     */
+    @Operation(summary = "AI解释补货建议", description = "根据商品信息生成自然语言解释")
+    @GetMapping("/explain")
+    public ResponseEntity<String> explainRestock(
+            @Parameter(description = "商品名称") @RequestParam String product,
+            @Parameter(description = "周销量") @RequestParam int sales,
+            @Parameter(description = "当前库存") @RequestParam int stock,
+            @Parameter(description = "安全库存") @RequestParam(defaultValue = "30") int safety) {
+
+        String explanation = aiDecisionService.explainRestock(product, sales, stock, safety);
+        return ResponseEntity.ok(explanation);
+    }
+
 }

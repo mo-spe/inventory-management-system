@@ -10,29 +10,21 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-// ProductService.java
 
-import com.example.inventorybackend.entity.OperationLog;
-import com.example.inventorybackend.entity.Product;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.annotation.PostConstruct;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional  // 确保增删改查在事务中执行
@@ -207,12 +199,6 @@ public class ProductService {
     /**
      * 获取最近 N 条日志（用于前端显示）
      */
-    /**
-     * 获取最近 N 条日志（用于前端显示）
-     */
-    /**
-     * 获取最近 N 条日志（用于前端显示）
-     */
     public List<Map<String, Object>> getRecentLogs(int limit) {
         // 从数据库获取最新的日志
         List<OperationLog> logs = logRepo.findTop10ByOrderByTimestampDesc();
@@ -227,6 +213,20 @@ public class ProductService {
             map.put("timestamp", log.getTimestamp().toString()); // 转为字符串避免 JSON 问题
             return map;
         }).collect(Collectors.toList());
+    }
+
+    /**
+     * 获取分页日志（支持自定义数量和分页）
+     */
+    public Page<OperationLog> getPagedLogs(Pageable pageable) {
+        return logRepo.findAll(pageable);
+    }
+
+    /**
+     * 获取指定数量的日志（支持自定义数量）
+     */
+    public List<OperationLog> getLogsByLimit(int limit) {
+        return logRepo.findTopByOrderByTimestampDesc(limit);
     }
 
 
@@ -249,6 +249,14 @@ public class ProductService {
                 .map(next -> "SP" + String.format("%04d", next + 1))
                 .orElse("SP0001");
     }
+    
+    /**
+     * 模糊搜索商品
+     */
+    public List<Product> searchProducts(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return productRepo.findAll();
+        }
+        return productRepo.findByKeyword(keyword.trim());
+    }
 }
-
-
